@@ -4,6 +4,7 @@ import 'dart:async';
 void main() {
   runApp(
     MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: HomeScreen(),
     ),
   );
@@ -19,9 +20,12 @@ class _HomeScreenState extends State<HomeScreen> {
   TextEditingController controller = TextEditingController();
 
   int totalSeconds = 1500;
-  Timer? timer;
-  // ? oznacza, ze zmienna moze byc nullable, czyli moze byc pusta
+  int initialSeconds = 1500;
 
+  Timer? timer;
+
+  // true = pokazuje TextField
+  // false = pokazuje zwykly Text
   bool isEditing = false;
 
   String formatTime() {
@@ -29,8 +33,11 @@ class _HomeScreenState extends State<HomeScreen> {
     int minutes = totalSeconds ~/ 60;
     int seconds = totalSeconds % 60;
 
-    String formattedMinutes = minutes.toString().padLeft(2, '0');
-    String formattedSeconds = seconds.toString().padLeft(2, '0');
+    String formattedMinutes =
+    minutes.toString().padLeft(2, '0');
+
+    String formattedSeconds =
+    seconds.toString().padLeft(2, '0');
 
     return "$formattedMinutes:$formattedSeconds";
   }
@@ -50,6 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
             GestureDetector(
               onTap: () {
 
+                controller.text = formatTime();
+
                 setState(() {
 
                   isEditing = true;
@@ -62,11 +71,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   ? SizedBox(
 
-                width: 150,
+                width: 220,
 
                 child: TextField(
 
                   controller: controller,
+
+                  textAlign: TextAlign.center,
+
+                  keyboardType: TextInputType.datetime,
 
                   style: TextStyle(
                     fontSize: 50,
@@ -80,14 +93,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   onSubmitted: (value) {
 
-                    List<String> parts = value.split(":");
+                    List<String> parts =
+                    value.split(":");
 
-                    int minutes = int.parse(parts[0]);
-                    int seconds = int.parse(parts[1]);
+                    int minutes =
+                    int.parse(parts[0]);
+
+                    int seconds =
+                    int.parse(parts[1]);
 
                     setState(() {
 
-                      totalSeconds = (minutes * 60) + seconds;
+                      totalSeconds =
+                          (minutes * 60) + seconds;
+
+                      initialSeconds =
+                          totalSeconds;
 
                       isEditing = false;
 
@@ -101,6 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   : Text(
                 formatTime(),
+
                 style: TextStyle(
                   fontSize: 50,
                   color: Color(0xFFE896C1),
@@ -114,39 +136,70 @@ class _HomeScreenState extends State<HomeScreen> {
             ElevatedButton(
               onPressed: () {
 
-                // sprawia, ze timer odpali sie tylko raz
+                // timer odpala sie tylko raz
                 if (timer == null) {
-                    timer = Timer.periodic(
-                      Duration(seconds: 1),
+                  timer = Timer.periodic(
+                    Duration(seconds: 1),
 
-                          (timer) {
+                        (currentTimer) {
 
-                        setState(() {
+                      setState(() {
 
-                          if (totalSeconds >0) {
-                            totalSeconds--;
-                          } else {
-                            timer?.cancel();
-                          }
-                        });
-                      },
-                    );
+                        if (totalSeconds > 0) {
+
+                          totalSeconds--;
+
+                        } else {
+
+                          currentTimer.cancel();
+
+                          timer = null;
+
+                        }
+
+                      });
+
+                    },
+                  );
                 }
-
-
 
               },
 
               child: Text("START"),
             ),
 
-            // przycisk stop
+            SizedBox(height: 10),
+
             ElevatedButton(
               onPressed: () {
+
                 timer?.cancel();
+
                 timer = null;
+
               },
+
               child: Text("STOP"),
+            ),
+
+            SizedBox(height: 10),
+
+            ElevatedButton(
+              onPressed: () {
+
+                timer?.cancel();
+
+                timer = null;
+
+                setState(() {
+
+                  totalSeconds = initialSeconds;
+
+                });
+
+              },
+
+              child: Text("RESET"),
             ),
 
           ],
